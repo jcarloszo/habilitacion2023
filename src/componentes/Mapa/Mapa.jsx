@@ -18,6 +18,8 @@ const Mapa = () => {
     const [marcadores, setMarcadores] = useState();
 
     let routingControl;
+    let distanciaMinima = 1000000000;
+    let rutaSeleccionada;
 
     const agregarPuntos = (punto) => {
         setPuntosMapa((puntosMapa) => [...puntosMapa, punto]);
@@ -37,8 +39,8 @@ const Mapa = () => {
     }
 
     const limpiarPuntos = () => {
-        setPuntosMapa([]);
         clearRoute();
+        setPuntosMapa([]);
     }
 
     const getNombreByCoordenadas = async (latitud, longitud) => {
@@ -46,10 +48,94 @@ const Mapa = () => {
         return (response.data.results[0].address_line1 + ' ' + response.data.results[0].address_line2);
     }
 
+    const permutator = (inputArr) => {
+        let result = [];
+
+        const permute = (arr, m = []) => {
+            if (arr.length === 0) {
+                result.push(m)
+            } else {
+                for (let i = 0; i < arr.length; i++) {
+                    let curr = arr.slice();
+                    let next = curr.splice(i, 1);
+                    permute(curr, m.concat(next))
+                }
+            }
+        }
+
+        permute(inputArr)
+        return result;
+    }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    const compararDistancias = (combinacionesPosibles, indice) => {
+        if (indice == combinacionesPosibles.length){
+            console.log("Distacia minima encontrada " +  distanciaMinima + "km");
+
+            routingControl = L.Routing.control({
+                waypoints: rutaSeleccionada,
+            }).addTo(mapa);
+
+            return;
+        };
+
+        console.log(indice);
+
+        let aux = combinacionesPosibles[indice].map(([lat, lng]) => L.latLng(lat, lng));
+
+        routingControl = L.Routing.control({
+            waypoints: aux,
+        }).addTo(mapa);
+
+        routingControl.on('routesfound', function (e) {
+            var routes = e.routes;
+            var summary = routes[0].summary;
+            // alert distance and time in km and minutes
+
+            if((summary.totalDistance / 1000) < distanciaMinima){
+                distanciaMinima = summary.totalDistance / 1000;
+                rutaSeleccionada = aux;
+            }
+
+            console.log('Total distance is ' + summary.totalDistance / 1000 + ' km and total time is ' + Math.round(summary.totalTime % 3600 / 60) + ' minutes');
+            clearRoute();
+
+            compararDistancias(combinacionesPosibles, indice + 1)
+        });
+
+        
+    }
+
     const rutaTest = () => {
-       routingControl =  L.Routing.control({
-            waypoints: puntosMapa.map(([lat, lng]) => L.latLng(lat, lng)),
-          }).addTo(mapa);
+
+        clearRoute();
+
+        let puntoInicial = puntosMapa[0];
+        let combinacionesPosibles = permutator(puntosMapa);
+
+        let combinacionesPosiblesFiltradas = combinacionesPosibles.filter(combinacionPuntos => {
+            return (combinacionPuntos[0][0] == puntoInicial[0] && combinacionPuntos[0][1] == puntoInicial[1])
+        });
+
+        combinacionesPosiblesFiltradas.forEach((combinacionPuntos => {
+            return combinacionPuntos.push(combinacionPuntos[0]);
+        }));
+
+        console.log(combinacionesPosiblesFiltradas.length);
+
+        compararDistancias(combinacionesPosiblesFiltradas, 0);
+
+        //     let aux = puntosMapa.map(([lat, lng]) => L.latLng(lat, lng));
+        //     aux.push(aux[0]);
+
+        //    routingControl =  L.Routing.control({
+        //         waypoints: aux,
+        //         router: L.Routing.osrmv1({
+        //             serviceUrl: 'https://router.project-osrm.org/route/v1'
+        //         }) 
+        //       }).addTo(mapa);
+
     }
 
     useEffect(() => {
@@ -59,18 +145,19 @@ const Mapa = () => {
 
     const clearRoute = () => {
         if (routingControl) {
-          routingControl.getPlan().setWaypoints([]);
-          mapa.removeControl(routingControl);
-          routingControl = null;
-          const routingContainer = document.getElementsByClassName(
-            "leaflet-routing-container"
-          )[0];
-          if (routingContainer) {
-            routingContainer.remove();
-          }
-          
+            console.log("Limpio");
+            routingControl.getPlan().setWaypoints([]);
+            mapa.removeControl(routingControl);
+            routingControl = null;
+            const routingContainer = document.getElementsByClassName(
+                "leaflet-routing-container"
+            )[0];
+            if (routingContainer) {
+                routingContainer.remove();
+            }
+
         }
-      };
+    };
 
 
     let IsLoaded = false;
