@@ -1,34 +1,38 @@
-import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import Usuario from '../../models/User/User';
+import React, { useEffect, useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import Usuario from "../../models/User/User";
+import { useNavigate } from "react-router-dom";
 
-const Formulario = () => {
-  
+const Formulario = ({ addUser }) => {
+  const navigate = useNavigate();
+  var isValid = false;
+
   const [usuario, setUsuario] = useState<Usuario>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    date: new Date(),
   });
 
+  useEffect(() => {}, [isValid]);
+
   const validationSchema = Yup.object().shape({
-    firstName: Yup.string().required('El nombre es requerido'),
-    lastName: Yup.string().required('El apellido es requerido'),
+    firstName: Yup.string().required("El nombre es requerido"),
+    lastName: Yup.string().required("El apellido es requerido"),
     email: Yup.string()
-      .email('El correo electrónico no es válido')
-      .required('El correo electrónico es requerido'),
-    password: Yup.string().required('La contraseña es requerida'),
+      .email("El correo electrónico no es válido")
+      .required("El correo electrónico es requerido"),
+    password: Yup.string().required("La contraseña es requerida"),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Las contraseñas deben coincidir')
-      .required('La confirmacion de la contraseña es requerida')
+      .oneOf([Yup.ref("password"), null], "Las contraseñas deben coincidir")
+      .required("La confirmacion de la contraseña es requerida"),
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
-    //Se guarda el usuario en la db. 
-
-
+    addUser(values);
     setSubmitting(false);
   };
 
@@ -51,7 +55,11 @@ const Formulario = () => {
                 name="firstName"
                 className="border border-gray-300 rounded py-2 px-3 w-full focus:outline-none focus:border-blue-500"
               />
-              <ErrorMessage name="firstName" component="div" className="text-red-500 mt-1 text-xs" />
+              <ErrorMessage
+                name="firstName"
+                component="div"
+                className="text-red-500 mt-1 text-xs"
+              />
             </div>
 
             <div className="mb-4">
@@ -64,7 +72,11 @@ const Formulario = () => {
                 name="lastName"
                 className="border border-gray-300 rounded py-2 px-3 w-full focus:outline-none focus:border-blue-500"
               />
-              <ErrorMessage name="lastName" component="div" className="text-red-500 mt-1 text-xs" />
+              <ErrorMessage
+                name="lastName"
+                component="div"
+                className="text-red-500 mt-1 text-xs"
+              />
             </div>
 
             <div className="mb-4">
@@ -77,7 +89,11 @@ const Formulario = () => {
                 name="email"
                 className="border border-gray-300 rounded py-2 px-3 w-full focus:outline-none focus:border-blue-500"
               />
-              <ErrorMessage name="email" component="div" className="text-red-500 mt-1 text-xs" />
+              <ErrorMessage
+                name="email"
+                component="div"
+                className="text-red-500 mt-1 text-xs"
+              />
             </div>
 
             <div className="mb-4">
@@ -90,7 +106,11 @@ const Formulario = () => {
                 name="password"
                 className="border border-gray-300 rounded py-2 px-3 w-full focus:outline-none focus:border-blue-500"
               />
-              <ErrorMessage name="password" component="div" className="text-red-500 mt-1 text-xs" />
+              <ErrorMessage
+                name="password"
+                component="div"
+                className="text-red-500 mt-1 text-xs"
+              />
             </div>
 
             <div className="mb-4">
@@ -103,7 +123,11 @@ const Formulario = () => {
                 name="confirmPassword"
                 className="border border-gray-300 rounded py-2 px-3 w-full focus:outline-none focus:border-blue-500"
               />
-              <ErrorMessage name="confirmPassword" component="div" className="text-red-500 mt-1 text-xs" />
+              <ErrorMessage
+                name="confirmPassword"
+                component="div"
+                className="text-red-500 mt-1 text-xs"
+              />
             </div>
 
             <button
