@@ -25,6 +25,17 @@ const Mapa = () => {
   let distanciaMinima = 1000000000;
   let rutaSeleccionada;
 
+  var defaultIcon = L.icon({
+    iconUrl: 'https://i.imgur.com/kiI0PYh.png',
+    shadowUrl: 'https://i.imgur.com/VW9Cwx2.png',
+
+    iconSize: [25, 41], // size of the icon
+    shadowSize: [41, 41], // size of the shadow
+    iconAnchor: [12, 40], // point of the icon which will correspond to marker's location
+    shadowAnchor: [10, 42],  // the same for the shadow
+    popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
   const agregarPuntos = (punto) => {
     setPuntosMapa((puntosMapa) => [...puntosMapa, punto]);
   };
@@ -190,7 +201,7 @@ const Mapa = () => {
     puntosMapa.forEach((punto) => {
       let lat = punto[0];
       let lon = punto[1];
-      L.marker([lat, lon]).addTo(mapa);
+      L.marker([lat, lon], {icon: defaultIcon}).addTo(mapa);
     });
   }, [puntosMapa, mapa]);
 
