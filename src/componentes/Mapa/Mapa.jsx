@@ -11,6 +11,9 @@ import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import "leaflet-routing-machine";
 import { SesionContext } from "../../models/Sesion/Sesion.tsx";
 import { useNavigate } from "react-router-dom";
+import HistorialRutas from "../HistorialRutas/HistorialRutas.jsx";
+import { agregarRuta } from "../../utils/ABMRutas.js";
+import Modal from "../Modal/Modal.tsx";
 
 const Mapa = () => {
   const myAPIKey = "38bf763b78744c80bb5671ef040b927c";
@@ -18,6 +21,7 @@ const Mapa = () => {
   const [puntosMapa, setPuntosMapa] = useState([]);
   const [mapa, setMapa] = useState();
   const [marcadores, setMarcadores] = useState();
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { user, cerrarSesion } = useContext(SesionContext);
 
@@ -63,6 +67,10 @@ const Mapa = () => {
     setPuntosMapa([]);
   };
 
+  const verHistorial = () => {
+    setModalVisible(true);
+  }
+
   const getNombreByCoordenadas = async (latitud, longitud) => {
     let response = await axios.get(
       `https://api.geoapify.com/v1/geocode/reverse?lat=${latitud}&lon=${longitud}&format=json&apiKey=${myAPIKey}`
@@ -103,6 +111,7 @@ const Mapa = () => {
         waypoints: rutaSeleccionada,
       }).addTo(mapa);
 
+      agregarRuta(rutaSeleccionada, puntosMapa);
       return;
     }
 
@@ -152,27 +161,44 @@ const Mapa = () => {
       return combinacionPuntos.push(combinacionPuntos[0]);
     });
 
-    // console.log(combinacionesPosiblesFiltradas.length);
-
     compararDistancias(combinacionesPosiblesFiltradas, 0);
   };
 
+  const visualizarRutaSeleccionada = (ruta) => {
+    clearRoute();
+    limpiarPuntos();
+    setModalVisible(false);
+
+    setPuntosMapa(ruta);
+
+    let aux = ruta.map(([lat, lng]) =>
+      L.latLng(lat, lng)
+    );
+    
+    routingControl = L.Routing.control({
+      waypoints: aux,
+    }).addTo(mapa);
+  }
+
   useEffect(() => {
-    // console.log(puntosMapa);
   }, [puntosMapa]);
 
   const clearRoute = () => {
-    if (routingControl) {
-      //console.log("Limpio");
-      routingControl.getPlan().setWaypoints([]);
-      mapa.removeControl(routingControl);
-      routingControl = null;
-      const routingContainer = document.getElementsByClassName(
-        "leaflet-routing-container"
-      )[0];
-      if (routingContainer) {
-        routingContainer.remove();
+    try {
+      if (routingControl) {
+        //console.log("Limpio");
+        routingControl.getPlan().setWaypoints([]);
+        mapa.removeControl(routingControl);
+        routingControl = null;
+        const routingContainer = document.getElementsByClassName(
+          "leaflet-routing-container"
+        )[0];
+        if (routingContainer) {
+          routingContainer.remove();
+        }
       }
+    } catch (error) {
+      
     }
   };
 
@@ -278,7 +304,7 @@ const Mapa = () => {
 
   return (
     <>
-      <div className="bg-black flex">
+      <div className="bg-black flex" style={{zIndex: 0}}>
         <div className="col">
           <div className="row text-white justify-center flex p-2 text-xl">
             <div className="">
@@ -306,6 +332,13 @@ const Mapa = () => {
               </button>
 
               <button
+                onClick={verHistorial}
+                className="bg-yellow-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                <h1 className="text-white">Historial Rutas</h1>
+              </button>
+
+              <button
                 onClick={rutaTest}
                 className="bg-green-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
               >
@@ -328,6 +361,10 @@ const Mapa = () => {
           ></ListaPuntos>
         </div>
       </div>
+      <Modal visible={modalVisible} setModalVisible={setModalVisible}>
+      <HistorialRutas visualizarRuta={visualizarRutaSeleccionada}></HistorialRutas>
+      </Modal>
+
     </>
   );
 };
