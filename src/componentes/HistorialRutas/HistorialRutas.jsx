@@ -28,10 +28,10 @@ const HistorialRutas = (props) => {
                         <div className="flex items-center justify-space-around">
                             <h4 className="">Ruta #{index + 1}</h4>
                             
-                            <button
+                            {/* <button
                                 className="bg-green-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                                 onClick={e => visualizar(ruta)}
-                            >Visualizar en mapa</button>
+                            >Visualizar en mapa</button> */}
                             <button
                                 className="bg-red-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                                 onClick={e => eliminar(ruta)}

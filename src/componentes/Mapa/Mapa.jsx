@@ -190,19 +190,28 @@ const Mapa = () => {
         //console.log("Limpio");
         routingControl.getPlan().setWaypoints([]);
         mapa.removeControl(routingControl);
-        routingControl = null;
-        const routingContainer = document.getElementsByClassName(
-          "leaflet-routing-container"
-        )[0];
-        if (routingContainer) {
-          routingContainer.remove();
-        }
+        //routingControl = null;
       }
+
+      const routingContainer = document.getElementsByClassName(
+        "leaflet-routing-container"
+      )[0];
+      if (routingContainer) {
+        routingContainer.remove();
+      }
+
+      const test = document.querySelectorAll("leaflet-pane.leaflet-overlay-pane svg")[0];
+      if (test) {
+        test.innerHTML = "<g></g>";
+      }
+
+      console.log(test);
+
     } catch (error) {
-      
+
     }
   };
-
+  
   let IsLoaded = false;
 
   useEffect(() => {
