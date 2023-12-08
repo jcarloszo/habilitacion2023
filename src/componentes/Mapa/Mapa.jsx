@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import HistorialRutas from "../HistorialRutas/HistorialRutas.jsx";
 import { agregarRuta } from "../../utils/ABMRutas.js";
 import Modal from "../Modal/Modal.tsx";
+import obtenerUbicacion from "../../utils/geo.js";
 
 const Mapa = () => {
   const myAPIKey = "38bf763b78744c80bb5671ef040b927c";
@@ -207,12 +208,24 @@ const Mapa = () => {
   useEffect(() => {
     if (IsLoaded) return;
     IsLoaded = true;
-    let map = L.map("map").setView(
-      [-26.83261080003296, -65.19707679748537],
-      13
-    );
-    setMarcadores(L.layerGroup());
-    setMapa(map);
+    
+    obtenerUbicacion()
+    .then(coordenadas => {
+      let map = L.map("map").setView(
+        [coordenadas.latitud, coordenadas.longitud],
+        15
+      );
+      setMarcadores(L.layerGroup());
+      setMapa(map);
+    })
+    .catch(error => {
+      let map = L.map("map").setView(
+        [-26.83261080003296, -65.19707679748537],
+        15
+      );
+      setMarcadores(L.layerGroup());
+      setMapa(map);
+    });
   }, []);
 
   useEffect(() => {
