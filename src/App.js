@@ -24,8 +24,4 @@ function App() {
     </div>
   );
 }
-
-
-asdasdasdasd
-
 export default App;
