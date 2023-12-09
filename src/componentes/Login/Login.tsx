@@ -5,10 +5,13 @@ import Formulario from "../Formulario/Formulario.tsx";
 import { useNavigate } from "react-router-dom";
 import Header from "../Header/header.tsx";
 import { SesionContext } from "../../models/Sesion/Sesion.tsx";
+import useUserRepository from "../repositorio/userRepository.js";
 
 const Login = () => {
   const navigate = useNavigate();
   const { iniciarSesion } = useContext(SesionContext);
+
+  const userRepository = useUserRepository();
 
   //Hooks
   const [usuario, setUsuario] = useState<Usuario>({
@@ -19,25 +22,6 @@ const Login = () => {
     confirmPassword: "",
     date: new Date(),
   });
-
-  const [usuarios, setUsuarios] = useState<Usuario[]>([
-    {
-      firstName: "Nahuel",
-      lastName: "Peralta",
-      email: "nvaldezperalta@gmail.com",
-      password: "123",
-      confirmPassword: "",
-      date: new Date(),
-    },
-    {
-      firstName: "Carlos",
-      lastName: "Zurita",
-      email: "carloszurita@gmail.com",
-      password: "345",
-      confirmPassword: "",
-      date: new Date(),
-    },
-  ]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [isValid, setIsValid] = useState(false);
@@ -68,38 +52,37 @@ const Login = () => {
     }
   }, [isValid]);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     let bandera = false;
-    usuarios.forEach((user) => {
-      if (user.email === usuario.email && user.password === usuario.password) {
-        // Acceso
+    const success = await userRepository.loginUser(usuario);
 
-        //Crear la sesion
-        iniciarSesion(user);
-
-        navigate("/mapa");
-
-        bandera = true;
-
-        return;
-      }
-    });
+    if (success) {
+      iniciarSesion(usuario);
+      navigate("/mapa");
+      bandera = true;
+      return;
+    }
 
     if (!bandera) {
       alert("Datos incorrectos");
     }
   };
 
-  const addUser = (user: Usuario) => {
-    const usuario = usuarios.filter((x) => x.email.match(user.email));
-    if (usuario.length > 0) {
+  const addUser = async (user: Usuario) => {
+
+    const userReturn = await userRepository.getUser(user);
+    
+    if (userReturn) {
       alert(
         "El usuario ya se encuentra registrado. Intente nuevamente con otro email."
       );
       return;
     } else {
-      setUsuario(user);
-      usuarios.push(user);
+      try{
+        userRepository.registerUser(user);
+      }catch(error){
+        console.log(error)
+      }
     }
     setIsValid(true);
   };
