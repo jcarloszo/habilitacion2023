@@ -1,6 +1,6 @@
 .leaflet-container {
-    width: 1000px;
-    height: 550px;
+    width: 1200px;
+    height: 580px;
 }
 
 .leaflet-top.leaflet-left {
@@ -11,7 +11,14 @@
     width: 98%;
 }
 
-.leaflet-routing-container.leaflet-bar.leaflet-control{
-    top:60px;
+.leaflet-routing-container.leaflet-bar.leaflet-control {
+    position: fixed;
+    left: 0;
+    top: 200px; /* Ajusta según sea necesario */
+    width: 350px;
+    background-color: gray;
+    color: white;
+    font-size: 15px;
+    
 }
 
