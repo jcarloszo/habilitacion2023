@@ -29,6 +29,7 @@ const Mapa = () => {
   const [mapa, setMapa] = useState();
   const [marcadores, setMarcadores] = useState();
   const [modalVisible, setModalVisible] = useState(false);
+  const [isParkSelected, setIsParkSelected] = useState(false);
 
   // Icono parques
 var iconGeneral = L.icon({
@@ -125,24 +126,24 @@ var iconMuseo = L.icon({
   var museos = L.layerGroup([museo1,museo2,museo3,museo4,museo5,museo6,museo7,museo8,museo9,museo10]);
 
   var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 10,
+      maxZoom: 15,
       attribution: '© OpenStreetMap'
     });
 
     var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 10,
+      maxZoom: 15,
       attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France'
     });
 
     var openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 10,
+    maxZoom: 15,
     attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'
 });
 
   var baseMaps = {
-    "OpenStreetMap": osm,
-    "<span style='color: red'>OpenStreetMap.HOT</span>": osmHOT,
-    "OpenTopoMap": openTopoMap
+    "Fisico": osm,
+    "<span style='color: red'>Politico</span>": osmHOT,
+    "Topográfico": openTopoMap
 };
 
 var overlayMaps = {
@@ -170,41 +171,28 @@ var overlayMaps = {
   });
 
 
-  function encontrarHospitalMasCercano(posicionInicial) {
-    var hospitalMasCercano = null;
+  function encontrarPlaceMasCercano(posicionInicial,places) {
+    var placeMasCercano = null;
     var distanciaMinima = Infinity;
   
-    hospitales.eachLayer(function (hospital) {
-      var latitudHospital = hospital.getLatLng().lat;
-      var longitudHospital = hospital.getLatLng().lng;
+    places.eachLayer(function (place) {
+      var latitud = place.getLatLng().lat;
+      var longitud = place.getLatLng().lng;
   
       // Calcular la distancia usando la fórmula de distancia euclidiana
       var distancia = Math.sqrt(
-        Math.pow(latitudHospital - posicionInicial[0], 2) +
-        Math.pow(longitudHospital - posicionInicial[1], 2)
+        Math.pow(latitud - posicionInicial[0], 2) +
+        Math.pow(longitud - posicionInicial[1], 2)
       );
   
       // Actualizar el hospital más cercano si la distancia es menor
       if (distancia < distanciaMinima) {
         distanciaMinima = distancia;
-        hospitalMasCercano = hospital.getLatLng();
+        placeMasCercano = place.getLatLng();
       }
     });
-
-    
-  
-    return hospitalMasCercano;
+    return placeMasCercano;
   }
-
-  //  // Ejemplo de uso
-  //  var posicionInicial = [-26.844376277499133, -65.21252507534979];  // Cambia esto por la posición inicial deseada
-  //  var hospitalCercano = encontrarHospitalMasCercano(posicionInicial);
-   
-  //  if (hospitalCercano) {
-  //    console.log('Posición del hospital más cercano:', hospitalCercano);
-  //  } else {
-  //    console.log('No se encontraron hospitales.');
-  //  }
 
   //Funcion para obtener coordenadas de los puntos
   function agregarEventoClicDerecho(capa) {
@@ -341,6 +329,7 @@ var overlayMaps = {
     });
 
     compararDistancias(combinacionesPosiblesFiltradas, 0);
+
   };
 
   const visualizarRutaSeleccionada = (ruta) => {
@@ -373,6 +362,8 @@ var overlayMaps = {
         //routingControl = null;
       }
 
+     
+
       const routingContainer = document.getElementsByClassName(
         "leaflet-routing-container"
       )[0];
@@ -390,6 +381,7 @@ var overlayMaps = {
     } catch (error) {
 
     }
+    setIsParkSelected(false)
   };
   
   let IsLoaded = false;
@@ -548,15 +540,35 @@ var overlayMaps = {
     agregarPuntos([coordenadas.lat,coordenadas.lng,nombre])
   }
 
-  const mostrarHospital = async () => {
-    var hospitalCercano = encontrarHospitalMasCercano(puntosMapa[0]);
-    if (hospitalCercano) {
-      let name = await getNombreByCoordenadas(hospitalCercano.lat, hospitalCercano.lng);
-
-      agregarMarcador(hospitalCercano,name);
+  const mostrarPlace = async (places) => {
+    var placeCercano = encontrarPlaceMasCercano(puntosMapa[0],places);
+    if (placeCercano) {
+      let name = await getNombreByCoordenadas(placeCercano.lat, placeCercano.lng);
+      agregarMarcador(placeCercano,name);
     } else {
-      console.log('No se encontraron hospitales.');
+      console.log('No se encontro el lugar.');
     }
+  };
+
+  const handleEvent = (placeType) => (event) => {
+    const isChecked = event.target.checked;
+    switch (placeType) {
+      case 'hospital':
+        mostrarPlace(hospitales)
+        break;
+      case 'museo':
+        mostrarPlace(museos)
+        break;
+      case 'facultad':
+        mostrarPlace(facultades)
+        break;
+      case 'park':
+        mostrarPlace(parks)
+        break;
+      default:
+        // Lógica por defecto (si es necesario)
+    }
+    //setIsParkSelected(isChecked);
   };
 
   
@@ -581,47 +593,48 @@ var overlayMaps = {
 
           {/* Check box de la cabecera */}
           <div className="col text-white flex space-x-4 py-2 justify-between">
+
             <div>
-              <label className="flex items-center space-x-2 py-2 px-4 border rounded border-blue-500">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-blue-500"
-                  disabled={puntosMapa[0]==undefined}
-                  onChange={mostrarHospital}
-                />
-                <span className="text-blue-500">Hospital mas cercano</span>
-              </label>
+              <button
+                className="bg-transparent hover:bg-blue-600 text-white font-bold py-2 px-4 rounded border border-blue-500 inline-flex items-center space-x-2"
+                disabled={puntosMapa[0] === undefined}
+                onClick={handleEvent('hospital')}
+              >
+                Hospital mas cercano
+              </button>
             </div>
+
             <div>
-              <label className="flex items-center space-x-2 py-2 px-4 border rounded border-green-500">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-green-500"
-                  disabled={puntosMapa[0]==undefined}
-                />
-                <span className="text-green-500">Museo mas cercano</span>
-              </label>
+              <button
+                className="bg-transparent hover:bg-green-600 text-white font-bold py-2 px-4 rounded border border-green-500 inline-flex items-center space-x-2"
+                disabled={puntosMapa[0] === undefined}
+                onClick={handleEvent('museo')}
+              >
+                Museo mas cercano
+              </button>
             </div>
+
             <div>
-              <label className="flex items-center space-x-2 py-2 px-4 border rounded border-green-500">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-green-500"
-                  disabled={puntosMapa[0]==undefined}
-                />
-                <span className="text-green-500">Facultad mas cercana</span>
-              </label>
+              <button
+                className="bg-transparent hover:bg-red-600 text-white font-bold py-2 px-4 rounded border border-red-500"
+                disabled={puntosMapa[0] === undefined}
+                onClick={handleEvent('facultad')}
+              >
+                Facultad mas cercana
+              </button>
             </div>
+
             <div>
-              <label className="flex items-center space-x-2 py-2 px-4 border rounded border-green-500">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-green-500"
-                  disabled={puntosMapa[0]==undefined}
-                />
-                <span className="text-green-500">Parque o plaza mas cercana</span>
-              </label>
+              <button
+                className="bg-transparent hover:bg-red-700 text-white font-bold py-2 px-4 rounded border border-yellow-500"
+                disabled={puntosMapa[0] === undefined}
+                onClick={handleEvent('park')}
+              >
+                Parque o plaza mas cercana
+              </button>
             </div>
+
+
           </div>
           {/* Check box de la cabecera */}
 
