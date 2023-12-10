@@ -1,5 +1,5 @@
 import {FirebaseContext} from '../../firebase';
-import { collection, addDoc, getDocs } from "firebase/firestore"; 
+import { collection, addDoc, getDocs,doc,getDoc,updateDoc } from "firebase/firestore"; 
 import { useContext } from "react";
 
 
@@ -33,6 +33,53 @@ const getUser = async (user) => {
     }
 }
 
+const findUser = async (email) => {
+  try{
+    const users = await getUsers()
+    
+    if(users.length>0){
+      return users.find(x=>x.email === email)
+    }
+    return null;
+
+  }catch(error){
+    console.error('Error al obtener el usuario', error.message);
+  }
+
+
+}
+
+
+const updateUser = async (email, newPassword) => {
+  try {
+    const userReturn = await findUser(email);
+
+    if (userReturn) {
+      const userRef = doc(db, 'usuarios', userReturn.id);
+
+      const userSnapshot = await getDoc(userRef);
+
+      if (userSnapshot.exists()) {
+        await updateDoc(userRef, {
+          password: newPassword,
+          confirmPassword: newPassword
+        });
+
+        return true;
+      } else {
+        console.error('El documento no existe para el usuario con email:', email);
+        return false;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error al actualizar el usuario', error.message);
+    return false;
+  }
+};
+
+
 const getUsers = async () => {
     try {
       const usuariosCollection =  await getDocs(collection(db, "usuarios"));
@@ -41,16 +88,16 @@ const getUsers = async () => {
       const usuarios = usuariosCollection.docs.map(doc => {
         const data = doc.data();
         return {
+          id: doc.id,
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
           password: data.password,
           confirmPassword: data.confirmPassword,
           date: data.date.toDate(),
+          answer: data.answer
         };
       });
-
-      console.log(usuarios)
 
       return usuarios;
 
@@ -101,7 +148,7 @@ const deleteUser = async () => {
 };
 
 return {
-    registerUser,getUsers,getUser,loginUser
+    registerUser,getUsers,getUser,loginUser,updateUser
   };
 
 }

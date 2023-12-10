@@ -10,6 +10,7 @@ import "animate.css";
 
 import "animate.css";
 import { SesionProvider } from "./models/Sesion/Sesion.tsx";
+import ForgotPassword from "./componentes/ForgotPassword/ForgotPassword.tsx";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <SesionProvider>
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/forgoutpassword" element={<ForgotPassword />} />
               <Route path="/puntos" element={<ListaPuntos />} />
               <Route path="/mapa" element={<Mapa />} />
             </Routes>

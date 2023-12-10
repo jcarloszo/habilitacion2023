@@ -2,10 +2,11 @@ import React, { useEffect, useState, useContext } from "react";
 import Usuario from "../../models/User/User";
 import * as Yup from "yup";
 import Formulario from "../Formulario/Formulario.tsx";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../Header/header.tsx";
 import { SesionContext } from "../../models/Sesion/Sesion.tsx";
 import useUserRepository from "../repositorio/userRepository.js";
+import ForgotPassword from "../ForgotPassword/ForgotPassword.tsx";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,6 +22,10 @@ const Login = () => {
     password: "",
     confirmPassword: "",
     date: new Date(),
+    answer: {
+      option: "",
+      response: ""
+    }
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -71,16 +76,16 @@ const Login = () => {
   const addUser = async (user: Usuario) => {
 
     const userReturn = await userRepository.getUser(user);
-    
+
     if (userReturn) {
       alert(
         "El usuario ya se encuentra registrado. Intente nuevamente con otro email."
       );
       return;
     } else {
-      try{
+      try {
         userRepository.registerUser(user);
-      }catch(error){
+      } catch (error) {
         console.log(error)
       }
     }
@@ -119,13 +124,24 @@ const Login = () => {
             />
           </div>
 
+
+
           <div className="p-2 mb-2 flex-1 px-4 space-x-2 ">
+
+
+            <div className="mb-4">
+              <Link to="/forgoutpassword" className="text-blue-500 underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               onClick={handleSignIn}
             >
               <h1 className="text-white">Sign In</h1>
             </button>
+
 
             <button
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -150,7 +166,7 @@ const Login = () => {
                   )}
                 </div>
                 <button
-                  className="absolute top-0 right-80 m-6 p-6 text-lg text-green-400 rounded-full focus:outline-none"
+                  className="absolute top-0 right-80 m-1 p-2 text-xl text-green-400 rounded-full focus:outline-none"
                   onClick={closeModal}
                 >
                   X
