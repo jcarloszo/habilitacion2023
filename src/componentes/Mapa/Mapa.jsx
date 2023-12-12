@@ -23,8 +23,12 @@ import imageGeneral from '../../resources/images/marcador1.png'
 import usePoints from "../repositorio/points.js";
 import useLayers from "../repositorio/layers.js";
 
+
 const Mapa = () => {
-  const myAPIKey = "38bf763b78744c80bb5671ef040b927c";
+
+  //API KEY-------------------------------------------
+  const myAPIKey = process.env.REACT_APP_LEAFLETAPIKEY
+  //--------------------------------------------------
 
   //Context-----------------------------------------------
   const { user, cerrarSesion } = useContext(SesionContext);
@@ -270,10 +274,12 @@ const Mapa = () => {
   }
   //------------------------------------------------------------------
 
+  //Manejador cerrar sesión----------------------
   const handleCerrarSesion = () => {
     cerrarSesion();
     navigate("/");
   };
+  //--------------------------------------------
 
   const limpiarPuntos = () => {
     clearRoute();
@@ -373,8 +379,11 @@ const Mapa = () => {
 
   //Visualizar ruta seleccionada-----------------------------------
   const visualizarRutaSeleccionada = (ruta) => {
+
     clearRoute();
+
     limpiarPuntos();
+
     setModalVisible(false);
 
     setPuntosMapa(ruta);
@@ -399,10 +408,10 @@ const Mapa = () => {
   //Limpiar rutas------------------------------------------------------------------------------
   const clearRoute = () => {
     try {
-      if (routingControl) {
+      
         routingControl.getPlan().setWaypoints([]);
         mapa.removeControl(routingControl);
-      }
+      
       const routingContainer = document.getElementsByClassName(
         "leaflet-routing-container"
       )[0];
@@ -455,6 +464,7 @@ const Mapa = () => {
 
 
   useEffect(() => {
+    
     if (mapa == undefined) return;
     for (let layer in mapa._layers) {
       if (mapa._layers[layer] instanceof L.Marker) {
