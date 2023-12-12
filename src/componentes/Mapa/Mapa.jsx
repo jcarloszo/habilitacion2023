@@ -20,144 +20,94 @@ import imageFacultad from '../../resources/images/facultad.png'
 import imageHospital from '../../resources/images/hospital.png'
 import imageMuseo from '../../resources/images/museo.png'
 import imageGeneral from '../../resources/images/marcador1.png'
-
+import usePoints from "../repositorio/points.js";
+import useLayers from "../repositorio/layers.js";
 
 const Mapa = () => {
   const myAPIKey = "38bf763b78744c80bb5671ef040b927c";
+
+  //Context-----------------------------------------------
+  const { user, cerrarSesion } = useContext(SesionContext);
+  //------------------------------------------------------
+
+  //Navigate---------------------
   const navigate = useNavigate();
+  //-----------------------------
+  
+  //Hooks generales-------------------------------------------
   const [puntosMapa, setPuntosMapa] = useState([]);
   const [mapa, setMapa] = useState();
   const [marcadores, setMarcadores] = useState();
+  //----------------------------------------------------------
+
+  //Hooks modales--------------------------------------------
   const [modalVisible, setModalVisible] = useState(false);
   const [isParkSelected, setIsParkSelected] = useState(false);
+  //---------------------------------------------------------
+  
 
-  // Icono parques
-var iconGeneral = L.icon({
-  iconUrl: imageGeneral,
-  iconSize: [32, 32], 
-  iconAnchor: [16, 32], 
-  popupAnchor: [0, -32]
-});
-
-
-  // Icono parques
-var iconPark = L.icon({
-  iconUrl: imagePark,
-  iconSize: [32, 32], 
-  iconAnchor: [16, 32], 
-  popupAnchor: [0, -32]
-});
-
-// Icono parques
-var iconFacultad = L.icon({
-  iconUrl: imageFacultad,
-  iconSize: [32, 32], 
-  iconAnchor: [16, 32], 
-  popupAnchor: [0, -32]
-});
-
-// Icono parques
-var iconHospital = L.icon({
-  iconUrl: imageHospital,
-  iconSize: [32, 32], 
-  iconAnchor: [16, 32], 
-  popupAnchor: [0, -32]
-});
-
-// Icono parques
-var iconMuseo = L.icon({
-  iconUrl: imageMuseo,
-  iconSize: [32, 32], 
-  iconAnchor: [16, 32], 
-  popupAnchor: [0, -32]
-});
-
-  //Inicializacion de variable
-  ///Plazas y Parques
-  var puntosReferencia = L.marker([-26.790243511964967, -65.23856217265528],{ icon: iconPark }).bindPopup('Paque Municipal'),
-  parque1 = L.marker([-26.804953184078016, -65.25229508260033],{ icon: iconPark }).bindPopup('Parque Centenario'),
-  parque2 = L.marker([-26.818435374265096, -65.26087815131599],{ icon: iconPark }).bindPopup('Parque Guillermina'),
-  parque3 = L.marker([-26.81200089258952, -65.20045334755777],{ icon: iconPark }).bindPopup('Plaza Urquiza'),
-  parque4 = L.marker([-26.812613716104533, -65.22929245844237],{ icon: iconPark }).bindPopup('Parque Avellaneda'),
-  parque5 = L.marker([-26.818128978658486, -65.18260056462921],{ icon: iconPark }).bindPopup('El Rosedal'),
-  parque6 = L.marker([-26.823950353535427, -65.21882111460927],{ icon: iconPark }).bindPopup('Plaza de la fundación Parque Avellaneda'),
-  parque7 = L.marker([-26.82854596455796, -65.21950776010652],{ icon: iconPark }).bindPopup('Plazoleta Dr. Miguel Lillo'),
-  parque8 = L.marker([-26.826707742518103, -65.2035432522954],{ icon: iconPark }).bindPopup('Plaza Independencia'),
-  parque9 = L.marker([-26.825941807865334, -65.19084031059623],{ icon: iconPark }).bindPopup('Parque 9 de Julio'),
-  parque10 = L.marker([-26.833754098354653, -65.2061181729101],{ icon: iconPark }).bindPopup('Plaza Hipólito Yrigoyen'),
-  parque11 = L.marker([-26.841565850018316, -65.20800644802755],{ icon: iconPark }).bindPopup('Parque de la Memoria');
-
-  var parks = L.layerGroup([puntosReferencia,parque1,parque2,parque3,parque4,parque5,parque6,parque7,parque8,parque9,parque10,parque11]);
-
-  //Facultades
-  var facultad1 = L.marker([-26.815018887359532, -65.19845402317024],{ icon: iconFacultad }).bindPopup('Universidad Tecnológica Nacional - Facultad Regional Tucumán'),
-  facultad2 = L.marker([-26.829076646535174, -65.22116922455552],{ icon: iconFacultad }).bindPopup('Facultad de Ciencias Naturales e IML - UNT'),
-  facultad3 = L.marker([-26.837308430767344, -65.23379304842736],{ icon: iconFacultad }).bindPopup('Facultad De Medicina (Sede Quinta Agronomica) - Universidad Nacional De Tucuman'),
-  facultad4 = L.marker([-26.83936628334042, -65.231729538756],{ icon: iconFacultad }).bindPopup('Facultad de Agronomía, Zootecnia y Veterinaria - UNT'),
-  facultad5 = L.marker([-26.842906356650495, -65.23165531201974],{ icon: iconFacultad }).bindPopup('Facultad de Ciencias Económicas - UNT'),
-  facultad6 = L.marker([-26.838973736247997, -65.2100226957361],{ icon: iconFacultad }).bindPopup('Facultad de Artes UNT'),
-  facultad7 = L.marker([-26.832661026848193, -65.18062617318375],{ icon: iconFacultad }).bindPopup('Facultad de filosofia y letras'),
-  facultad8 = L.marker([-26.823918003938463, -65.20237557154601],{ icon: iconFacultad }).bindPopup('Facultad de Derecho UNT');
-
-  var facultades = L.layerGroup([facultad1,facultad2,facultad3,facultad4,facultad5,facultad6,facultad7,facultad8]);
-
-  //Hospitales
-  var hospital1 = L.marker([-26.825619666702558, -65.2211006948956],{ icon: iconHospital }).bindPopup('Instituto de Maternidad y Ginecología Nuestra Señora de las Mercedes'),
-  hospital2 = L.marker([-26.832541995826094, -65.22232554046182],{ icon: iconHospital }).bindPopup('Hospital de dia Doctor Juan María Obarrio.'),
-  hospital3 = L.marker([-26.82195853296367, -65.19535081564679],{ icon: iconHospital }).bindPopup('Centro de Salud Dr. Zenón J. Santillán'),
-  hospital4 = L.marker([-26.827441373335386, -65.19782862894266],{ icon: iconHospital }).bindPopup('Hospital de Día Pte. Néstor C. Kirchner'),
-  hospital5 = L.marker([-26.840598789282744, -65.21109644159156],{ icon: iconHospital }).bindPopup('Hospital del Niño Jesús'),
-  hospital6 = L.marker([-26.793552837668244, -65.19537893787142],{ icon: iconHospital }).bindPopup('Hospital Nuestra Señora del Carmen Servicio de Urgencias');
-
-  var hospitales = L.layerGroup([hospital1,hospital2,hospital3,hospital4,hospital5,hospital6]);
-
-  //Museos
-  var museo1 = L.marker([-26.825066041137234, -65.22045019629368],{ icon: iconMuseo }).bindPopup('INSTITUTO DE ARQUEOLOGIA Y MUSEO'),
-  museo2 = L.marker([-26.830657288214308, -65.22165182595566],{ icon: iconMuseo }).bindPopup('Museo Miguel Lillo de Ciencias Naturales'),
-  museo3 = L.marker([-26.8210830666559, -65.2090347133843],{ icon: iconMuseo }).bindPopup('Casa Museo de la Ciudad SMT'),
-  museo4 = L.marker([-26.825908575447237, -65.20388487202962],{ icon: iconMuseo }).bindPopup('Instituto De Arqueología Y Museo - America Indigena, Diversidad Cultural Y Tecnología Antigua'),
-  museo5 = L.marker([-26.829899672047777, -65.20588905614306],{ icon: iconMuseo }).bindPopup('Museo Folklórico Provincial'),
-  museo6 = L.marker([-26.829626423859285, -65.20451110484754],{ icon: iconMuseo }).bindPopup('Museo Casa Padilla'),
-  museo7 = L.marker([-26.831185179807978, -65.20476976909815],{ icon: iconMuseo }).bindPopup('Museo Provincial de Bellas Artes Timoteo E. Navarro'),
-  museo8 = L.marker([-26.831606425010104, -65.19987741981122],{ icon: iconMuseo }).bindPopup('Museo Provincial Escultor Juan Carlos Iramain'),
-  museo9 = L.marker([-26.83287015121705, -65.20382563151647],{ icon: iconMuseo }).bindPopup('Casa Histórica - Museo Nacional de la Independencia'),
-  museo10 = L.marker([-26.837580279223168, -65.2181164412757],{ icon: iconMuseo }).bindPopup('Casa Belgraniana Solar Historico');
-
-  var museos = L.layerGroup([museo1,museo2,museo3,museo4,museo5,museo6,museo7,museo8,museo9,museo10]);
-
-  var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 15,
-      attribution: '© OpenStreetMap'
-    });
-
-    var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 15,
-      attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France'
-    });
-
-    var openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 15,
-    attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'
-});
-
-  var baseMaps = {
-    "Fisico": osm,
-    "<span style='color: red'>Politico</span>": osmHOT,
-    "Topográfico": openTopoMap
-};
-
-var overlayMaps = {
-    "Plazas y Parques": parks,
-    "Facultades":facultades,
-    "Hospitales:":hospitales,
-    "Museos": museos
-};
-
-  const { user, cerrarSesion } = useContext(SesionContext);
-
+  //Declaracion de variables temporales
   let routingControl;
   let distanciaMinima = 1000000000;
   let rutaSeleccionada;
+  //-------------------------------------
+
+
+  //Hooks tipos de mapa------------------------------
+  const [osm, setOSM] = useState(null);
+  const [osmHOT, setOSMHOT] = useState(null);
+  const [openTopoMap, setOPENTOPOMAP] = useState(null);
+  const [baseMaps, setBaseMaps] = useState({});
+  const [overlayMaps, setOverlayMaps] = useState({});
+  //----------------------------------------------------
+
+  //Instancias de repositorios-------------
+  const usePointsRepository = usePoints();
+  const useLayersRepository = useLayers();
+  //-------------------------------------
+
+  //Hooks puntos de referencia-----------------------
+  const [facultades, setFacultades] = useState(null);
+  const [hospitales, setHospitales] = useState(null);
+  const [parks, setParks] = useState(null);
+  const [museos, setMuseos] = useState(null);
+  //-------------------------------------------------
+
+  // Iconos-----------------------------------------
+  var iconGeneral = L.icon({
+    iconUrl: imageGeneral,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  var iconPark = L.icon({
+    iconUrl: imagePark,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  var iconFacultad = L.icon({
+    iconUrl: imageFacultad,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  var iconHospital = L.icon({
+    iconUrl: imageHospital,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  var iconMuseo = L.icon({
+    iconUrl: imageMuseo,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
 
   var defaultIcon = L.icon({
     iconUrl: 'https://i.imgur.com/kiI0PYh.png',
@@ -170,22 +120,104 @@ var overlayMaps = {
     popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
   });
 
+  //---------------------------------------------
 
-  function encontrarPlaceMasCercano(posicionInicial,places) {
+  //Tipos de mapas-------------------------------
+  async function loadLayerTypes() {
+    const maxZoom = 15;
+    try {
+      await useLayersRepository.getLayers().then((layers) => {
+        layers.forEach(element => {
+          switch (element.type.toLocaleUpperCase()) {
+            case 'FISICO':
+              setOSM(L.tileLayer(element.url, { maxZoom: maxZoom }));
+              break;
+            case 'POLITICO':
+              setOSMHOT(L.tileLayer(element.url, { maxZoom: maxZoom }));
+              break;
+            case 'TOPOGRAFICO':
+              setOPENTOPOMAP(L.tileLayer(element.url, { maxZoom: maxZoom }));
+              break;
+            default:
+              break;
+          }
+        });
+      })
+
+      setBaseMaps({
+        "Fisico": osm,
+        "Político": osmHOT,
+        "Topográfico": openTopoMap
+      })
+
+    } catch (error) {
+      console.log("No es posible obtener los tipos de capas:", error.message)
+    }
+
+  }
+  //--------------------------------------------------
+
+  //Funcion auxiliar para carga de puntos---------------------------------------
+  const loadPoints = async (type, icon, repositoryFunction, setLayerGroup) => {
+    try {
+      const puntosArray = await repositoryFunction();
+      const markers = puntosArray.map(element => L.marker([element.punto.latitud, element.punto.longitud], { icon: icon }).bindPopup(element.description));
+      const layerGroup = L.layerGroup(markers);
+      setLayerGroup(layerGroup);
+    } catch (error) {
+      console.error(`Error al obtener ${type}:`, error.message);
+    }
+  }
+  //----------------------------------------------------------------------------
+
+  //Carga de puntos de referencia--------------------------------------------
+  function load() {
+    //Agregar mas tipos si es necesario.
+    const arrayTypes = ['facultades', 'museos', 'hospitales', 'parks'];
+
+    arrayTypes.forEach(element => {
+      switch (element) {
+        case 'facultades':
+          loadPoints(element, iconFacultad, usePointsRepository.getFacultades, setFacultades);
+          break;
+        case 'museos':
+          loadPoints(element, iconMuseo, usePointsRepository.getMuseos, setMuseos);
+          break;
+        case 'hospitales':
+          loadPoints(element, iconHospital, usePointsRepository.getHospitales, setHospitales);
+          break;
+        case 'parks':
+          loadPoints(element, iconPark, usePointsRepository.getParks, setParks);
+        default:
+          break;
+      }
+    });
+
+    setOverlayMaps({
+      "Plazas y Parques": parks,
+      "Facultades": facultades,
+      "Hospitales:": hospitales,
+      "Museos": museos
+    })
+  }
+  //----------------------------------------------------------------------------
+
+  //Encontrar lugar mas cercano-------------------------------------------------
+  function encontrarPlaceMasCercano(posicionInicial, places) {
     var placeMasCercano = null;
     var distanciaMinima = Infinity;
-  
+
     places.eachLayer(function (place) {
       var latitud = place.getLatLng().lat;
       var longitud = place.getLatLng().lng;
-  
+
       // Calcular la distancia usando la fórmula de distancia euclidiana
       var distancia = Math.sqrt(
         Math.pow(latitud - posicionInicial[0], 2) +
         Math.pow(longitud - posicionInicial[1], 2)
       );
-  
-      // Actualizar el hospital más cercano si la distancia es menor
+
+      // Actualizar el lugar más cercano si la distancia es menor
       if (distancia < distanciaMinima) {
         distanciaMinima = distancia;
         placeMasCercano = place.getLatLng();
@@ -193,35 +225,41 @@ var overlayMaps = {
     });
     return placeMasCercano;
   }
+  //-----------------------------------------------------------------------------
 
-  //Funcion para obtener coordenadas de los puntos
+  //Agregar popup a cada punto-------------------------------------------------
   function agregarEventoClicDerecho(capa) {
-    capa.eachLayer(function (elemento) {
-      elemento.on('contextmenu', async function (evento) {
-        var latitudClic = evento.latlng.lat;
-        var longitudClic = evento.latlng.lng;
-        let name = await getNombreByCoordenadas(latitudClic, longitudClic);
-        agregarPuntos([latitudClic, longitudClic, name]);
+    try {
+      capa.eachLayer(function (elemento) {
+        elemento.on('contextmenu', async function (evento) {
+          var latitudClic = evento.latlng.lat;
+          var longitudClic = evento.latlng.lng;
+          let name = await getNombreByCoordenadas(latitudClic, longitudClic);
+          agregarPuntos([latitudClic, longitudClic, name]);
+        });
       });
-    });
+    } catch (error) {
+      console.log(error.message)
+    }
   }
-  
 
-  // Uso de la función para cada capa
   agregarEventoClicDerecho(parks);
   agregarEventoClicDerecho(facultades);
   agregarEventoClicDerecho(hospitales);
   agregarEventoClicDerecho(museos);
+  //---------------------------------------------------------------------------
 
-
+  //Agregar puntos al mapa----------------------------------------
   const agregarPuntos = (punto) => {
     setPuntosMapa((puntosMapa) => [...puntosMapa, punto]);
   };
+  //--------------------------------------------------------------
 
+
+  //Eliminar punto--------------------------------------------------
   function eliminarPunto(punto) {
     clearRoute();
     let aux = [];
-
     puntosMapa.forEach((puntoActual) => {
       if (puntoActual[0] != punto[0] || puntoActual[1] != punto[1]) {
         aux.push(puntoActual);
@@ -230,6 +268,7 @@ var overlayMaps = {
 
     setPuntosMapa(aux);
   }
+  //------------------------------------------------------------------
 
   const handleCerrarSesion = () => {
     cerrarSesion();
@@ -245,6 +284,7 @@ var overlayMaps = {
     setModalVisible(true);
   }
 
+  //Obtener el nombre por las coordenadas-----------------------------------------------------------------------
   const getNombreByCoordenadas = async (latitud, longitud) => {
     let response = await axios.get(
       `https://api.geoapify.com/v1/geocode/reverse?lat=${latitud}&lon=${longitud}&format=json&apiKey=${myAPIKey}`
@@ -255,11 +295,11 @@ var overlayMaps = {
       response.data.results[0].address_line2
     );
   };
+  //-------------------------------------------------------------------------------------------------------------
 
+  //Permutador---------------------------
   const permutator = (inputArr) => {
-
     let result = [];
-
     const permute = (arr, m = []) => {
       if (arr.length === 0) {
         result.push(m);
@@ -271,11 +311,12 @@ var overlayMaps = {
         }
       }
     };
-
     permute(inputArr);
     return result;
   };
+  //---------------------------------------
 
+  //Comparar distancias-----------------------------------------------
   const compararDistancias = (combinacionesPosibles, indice) => {
     if (indice == combinacionesPosibles.length) {
       routingControl = L.Routing.control({
@@ -285,8 +326,6 @@ var overlayMaps = {
       agregarRuta(rutaSeleccionada, puntosMapa);
       return;
     }
-
-
     let aux = combinacionesPosibles[indice].map(([lat, lng]) =>
       L.latLng(lat, lng)
     );
@@ -309,7 +348,9 @@ var overlayMaps = {
       compararDistancias(combinacionesPosibles, indice + 1);
     });
   };
+  //--------------------------------------------------------------
 
+  //Optimizar ruta---------------------------------------------------
   const rutaTest = () => {
     clearRoute();
     let puntoInicial = puntosMapa[0];
@@ -323,15 +364,14 @@ var overlayMaps = {
         );
       }
     );
-
     combinacionesPosiblesFiltradas.forEach((combinacionPuntos) => {
       return combinacionPuntos.push(combinacionPuntos[0]);
     });
-
     compararDistancias(combinacionesPosiblesFiltradas, 0);
-
   };
+  //----------------------------------------------------------------
 
+  //Visualizar ruta seleccionada-----------------------------------
   const visualizarRutaSeleccionada = (ruta) => {
     clearRoute();
     limpiarPuntos();
@@ -342,77 +382,80 @@ var overlayMaps = {
     let aux = ruta.map(([lat, lng]) =>
       L.latLng(lat, lng)
     );
-    
+
     routingControl = L.Routing.control({
       waypoints: aux,
     }).addTo(mapa);
   }
+  //-------------------------------------------------------------
+
 
   useEffect(() => {
-  }, [puntosMapa]);
+    load();
+    loadLayerTypes();
+  }, [osm, osmHOT, openTopoMap]);
 
-  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
+  //Limpiar rutas------------------------------------------------------------------------------
   const clearRoute = () => {
     try {
       if (routingControl) {
-        //console.log("Limpio");
         routingControl.getPlan().setWaypoints([]);
         mapa.removeControl(routingControl);
-        //routingControl = null;
       }
-
-     
-
       const routingContainer = document.getElementsByClassName(
         "leaflet-routing-container"
       )[0];
       if (routingContainer) {
         routingContainer.remove();
       }
-
       const test = document.querySelectorAll("leaflet-pane.leaflet-overlay-pane svg")[0];
       if (test) {
         test.innerHTML = "<g></g>";
       }
-
-      console.log(test);
 
     } catch (error) {
 
     }
     setIsParkSelected(false)
   };
-  
   let IsLoaded = false;
-
   useEffect(() => {
     if (IsLoaded) return;
     IsLoaded = true;
-    obtenerUbicacion()
-    .then(coordenadas => {
-      let map = L.map("map").setView(
-        [coordenadas.latitud, coordenadas.longitud],
-        15,
-        [osm, parks, hospitales, facultades, museos]
-      );
-      setMarcadores(L.layerGroup());
-      setMapa(map);
-    })
-    .catch(error => {
-      let map = L.map("map").setView(
-        [-26.83261080003296, -65.19707679748537],
-        15,
-        [osm, parks, hospitales, facultades, museos]
-      );
-      setMarcadores(L.layerGroup());
-      setMapa(map);
-    });
+    getLocation()
   }, []);
+  //-------------------------------------------------------------------------------------------
+
+  //Obtener geolocalizacion-----------------------------------------
+  const getLocation = () => {
+    obtenerUbicacion()
+      .then(coordenadas => {
+        let map = L.map("map").setView(
+          [coordenadas.latitud, coordenadas.longitud],
+          15,
+          [osm, parks, hospitales, facultades, museos]
+        );
+        //Una vez que encuentra la direccion la guarda.
+        agregarPuntos([coordenadas.latitud, coordenadas.longitud])
+        setMarcadores(L.layerGroup());
+        setMapa(map);
+      })
+      .catch(error => {
+        let map = L.map("map").setView(
+          [-26.83261080003296, -65.19707679748537],
+          15,
+          [osm, parks, hospitales, facultades, museos]
+        );
+        setMarcadores(L.layerGroup());
+        setMapa(map);
+      });
+  }
+  //-----------------------------------------------------------------
+
 
   useEffect(() => {
     if (mapa == undefined) return;
-
     for (let layer in mapa._layers) {
       if (mapa._layers[layer] instanceof L.Marker) {
         mapa.removeLayer(mapa._layers[layer]);
@@ -422,30 +465,20 @@ var overlayMaps = {
     puntosMapa.forEach((punto) => {
       let lat = punto[0];
       let lon = punto[1];
-      L.marker([lat, lon], {icon: defaultIcon}).addTo(mapa);
+      L.marker([lat, lon], { icon: defaultIcon }).addTo(mapa);
     });
-
   }, [puntosMapa, mapa]);
 
   useEffect(() => {
     if (mapa == undefined) return;
 
+    loadLayerTypes();
+
     var mapURL = L.Browser.retina
       ? `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}.png?apiKey=${myAPIKey}`
       : `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}@2x.png?apiKey=${myAPIKey}`;
 
-    
-    var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 10,
-      attribution: '© OpenStreetMap'
-    });
-
-    var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 10,
-      attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France'
-    });
-
-      L.tileLayer(mapURL, {
+    L.tileLayer(mapURL, {
       attribution: "ZuritaOrtiz_ValdezPeralta",
       apiKey: myAPIKey,
       mapStyle: "osm-bright-smooth",
@@ -462,10 +495,9 @@ var overlayMaps = {
     });
 
 
-    //Buscador
+    //Buscador de direcciones-----------------------------------------------
     const addressSearchControl = L.control.addressSearch(myAPIKey, {
       resultCallback: (address) => {
-        
         if (!address) {
           return;
         }
@@ -494,62 +526,69 @@ var overlayMaps = {
       },
     });
     mapa.addControl(addressSearchControl);
-
     //Captura de radio buttons
     obtencionEventsRadioButton(mapa)
-
     L.control.zoom({ position: "bottomright" }).addTo(mapa);
-
   }, [mapa]);
+  //-------------------------------------------------------------------------------------
 
 
-  function obtencionEventsRadioButton (mapa){
+  //Control para poder ver los tipos de mapas y puntos de referencia--------------------------------------------------
+  function obtencionEventsRadioButton(mapa) {
+    try {
+      //Agregar el boton de diversos mapas y capas
+      var controlCapas = L.control.layers(baseMaps, overlayMaps);
+      controlCapas.addTo(mapa);
+      controlCapas.getContainer().classList.add('custom-control-position');
 
-    //Agregar el boton de diversos mapas y capas
-    var controlCapas = L.control.layers(baseMaps, overlayMaps);
-    controlCapas.addTo(mapa);
-    controlCapas.getContainer().classList.add('custom-control-position');
+      // Obtener todos los checkboxes dentro del contenedor del control de capas
+      var checkboxes = controlCapas.getContainer().querySelectorAll('.leaflet-control-layers-selector');
 
-    // Obtener todos los checkboxes dentro del contenedor del control de capas
-    var checkboxes = controlCapas.getContainer().querySelectorAll('.leaflet-control-layers-selector');
+      checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function (event) {
+          var nombreCapa = checkbox.parentElement.querySelector('span').innerText.trim().replace(':', '');
+          switch (nombreCapa) {
+            case 'Hospitales':
+              // Ruta a tu imagen personalizada
 
-    checkboxes.forEach(function (checkbox) {
-      checkbox.addEventListener('change', function (event) {
-        var nombreCapa = checkbox.parentElement.querySelector('span').innerText.trim().replace(':', '');
-        switch (nombreCapa) {
-          case 'Hospitales':
-            // Ruta a tu imagen personalizada
-
-            break;
-          case 'Plazas y Parques':
-            //Agregar logica para cambiar el color del posicionador
-            break;
-          case 'Facultades':
-            //Agregar logica para cambiar el color del posicionador
-            break;
-          case 'Museos':
-            //Agregar logica para cambiar el color del posicionador
-            break;
-        }
+              break;
+            case 'Plazas y Parques':
+              //Agregar logica para cambiar el color del posicionador
+              break;
+            case 'Facultades':
+              //Agregar logica para cambiar el color del posicionador
+              break;
+            case 'Museos':
+              //Agregar logica para cambiar el color del posicionador
+              break;
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.log(error.message)
+    }
   }
+  //-----------------------------------------------------------------------------------------------------------
 
 
+  //Agregar marcador----------------------------------------------------------------
   function agregarMarcador(coordenadas, nombre) {
-    agregarPuntos([coordenadas.lat,coordenadas.lng,nombre])
+    agregarPuntos([coordenadas.lat, coordenadas.lng, nombre])
   }
 
   const mostrarPlace = async (places) => {
-    var placeCercano = encontrarPlaceMasCercano(puntosMapa[0],places);
+    var placeCercano = encontrarPlaceMasCercano(puntosMapa[0], places);
     if (placeCercano) {
       let name = await getNombreByCoordenadas(placeCercano.lat, placeCercano.lng);
-      agregarMarcador(placeCercano,name);
+      agregarMarcador(placeCercano, name);
     } else {
       console.log('No se encontro el lugar.');
     }
   };
+  //-----------------------------------------------------------------------------------
 
+
+  //Manejador de evento para visualizar los puntos de referencia--------------------------
   const handleEvent = (placeType) => (event) => {
     const isChecked = event.target.checked;
     switch (placeType) {
@@ -566,16 +605,15 @@ var overlayMaps = {
         mostrarPlace(parks)
         break;
       default:
-        // Lógica por defecto (si es necesario)
+        break;
     }
-    //setIsParkSelected(isChecked);
   };
+  //--------------------------------------------------------------------------------------
 
-  
 
   return (
     <>
-      <div className="bg-black flex" style={{zIndex: 0}}>
+      <div className="bg-black flex" style={{ zIndex: 0 }}>
         <div className="col">
           <div className="row text-white justify-center flex p-2 text-xl">
             <div className="">
@@ -682,7 +720,7 @@ var overlayMaps = {
         </div>
       </div>
       <Modal visible={modalVisible} setModalVisible={setModalVisible}>
-      <HistorialRutas visualizarRuta={visualizarRutaSeleccionada}></HistorialRutas>
+        <HistorialRutas visualizarRuta={visualizarRutaSeleccionada}></HistorialRutas>
       </Modal>
 
     </>
