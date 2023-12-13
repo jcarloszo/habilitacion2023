@@ -23,12 +23,8 @@ import imageGeneral from '../../resources/images/marcador1.png'
 import usePoints from "../repositorio/points.js";
 import useLayers from "../repositorio/layers.js";
 
-
 const Mapa = () => {
-
-  //API KEY-------------------------------------------
-  const myAPIKey = process.env.REACT_APP_LEAFLETAPIKEY
-  //--------------------------------------------------
+  const myAPIKey = "38bf763b78744c80bb5671ef040b927c";
 
   //Context-----------------------------------------------
   const { user, cerrarSesion } = useContext(SesionContext);
@@ -42,6 +38,7 @@ const Mapa = () => {
   const [puntosMapa, setPuntosMapa] = useState([]);
   const [mapa, setMapa] = useState();
   const [marcadores, setMarcadores] = useState();
+  const [itsLoaded, setItsLoaded] = useState(false);
   //----------------------------------------------------------
 
   //Hooks modales--------------------------------------------
@@ -50,10 +47,14 @@ const Mapa = () => {
   //---------------------------------------------------------
   
 
-  //Declaracion de variables temporales
+  //Declaracion de var,let,const
   let routingControl;
   let distanciaMinima = 1000000000;
   let rutaSeleccionada;
+  var mapURL = L.Browser.retina
+      ? `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}.png?apiKey=${myAPIKey}`
+      : `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}@2x.png?apiKey=${myAPIKey}`;
+      
   //-------------------------------------
 
 
@@ -127,10 +128,10 @@ const Mapa = () => {
   //---------------------------------------------
 
   //Tipos de mapas-------------------------------
-  async function loadLayerTypes() {
+   async function loadLayerTypes() {
     const maxZoom = 15;
     try {
-      await useLayersRepository.getLayers().then((layers) => {
+       useLayersRepository.getLayers().then((layers) => {
         layers.forEach(element => {
           switch (element.type.toLocaleUpperCase()) {
             case 'FISICO':
@@ -157,7 +158,6 @@ const Mapa = () => {
     } catch (error) {
       console.log("No es posible obtener los tipos de capas:", error.message)
     }
-
   }
   //--------------------------------------------------
 
@@ -175,7 +175,7 @@ const Mapa = () => {
   //----------------------------------------------------------------------------
 
   //Carga de puntos de referencia--------------------------------------------
-  function load() {
+   function load() {
     //Agregar mas tipos si es necesario.
     const arrayTypes = ['facultades', 'museos', 'hospitales', 'parks'];
 
@@ -246,11 +246,6 @@ const Mapa = () => {
       console.log(error.message)
     }
   }
-
-  agregarEventoClicDerecho(parks);
-  agregarEventoClicDerecho(facultades);
-  agregarEventoClicDerecho(hospitales);
-  agregarEventoClicDerecho(museos);
   //---------------------------------------------------------------------------
 
   //Agregar puntos al mapa----------------------------------------
@@ -274,12 +269,10 @@ const Mapa = () => {
   }
   //------------------------------------------------------------------
 
-  //Manejador cerrar sesión----------------------
   const handleCerrarSesion = () => {
     cerrarSesion();
     navigate("/");
   };
-  //--------------------------------------------
 
   const limpiarPuntos = () => {
     clearRoute();
@@ -324,6 +317,7 @@ const Mapa = () => {
 
   //Comparar distancias-----------------------------------------------
   const compararDistancias = (combinacionesPosibles, indice) => {
+    
     if (indice == combinacionesPosibles.length) {
       routingControl = L.Routing.control({
         waypoints: rutaSeleccionada,
@@ -348,9 +342,7 @@ const Mapa = () => {
         distanciaMinima = summary.totalDistance / 1000;
         rutaSeleccionada = aux;
       }
-
       clearRoute();
-
       compararDistancias(combinacionesPosibles, indice + 1);
     });
   };
@@ -358,7 +350,9 @@ const Mapa = () => {
 
   //Optimizar ruta---------------------------------------------------
   const rutaTest = () => {
-    clearRoute();
+    if(puntosMapa.length>0){
+      clearRoute()
+    }
     let puntoInicial = puntosMapa[0];
     let combinacionesPosibles = permutator(puntosMapa);
 
@@ -379,9 +373,8 @@ const Mapa = () => {
 
   //Visualizar ruta seleccionada-----------------------------------
   const visualizarRutaSeleccionada = (ruta) => {
-
     clearRoute();
-
+    
     limpiarPuntos();
 
     setModalVisible(false);
@@ -399,181 +392,209 @@ const Mapa = () => {
   //-------------------------------------------------------------
 
 
-  useEffect(() => {
-    load();
-    loadLayerTypes();
-  }, [osm, osmHOT, openTopoMap]);
-
-
   //Limpiar rutas------------------------------------------------------------------------------
   const clearRoute = () => {
     try {
-      
-        routingControl.getPlan().setWaypoints([]);
-        mapa.removeControl(routingControl);
-      
-      const routingContainer = document.getElementsByClassName(
-        "leaflet-routing-container"
-      )[0];
-      if (routingContainer) {
-        routingContainer.remove();
-      }
-      const test = document.querySelectorAll("leaflet-pane.leaflet-overlay-pane svg")[0];
-      if (test) {
-        test.innerHTML = "<g></g>";
-      }
+        if (routingControl) {
+          routingControl.getPlan().setWaypoints([]);
+          mapa.removeControl(routingControl);
+        }
+        const routingContainer = document.getElementsByClassName(
+          "leaflet-routing-container"
+        )[0];
+        if (routingContainer) {
+          routingContainer.remove();
+        }
+        const rutas = document.querySelectorAll(".leaflet-pane.leaflet-overlay-pane g")[0];
+        clearMarkers();
+        clearPopups();
+
+        if (rutas) {
+          rutas.innerHTML = "<g></g>";
+        }
 
     } catch (error) {
 
     }
     setIsParkSelected(false)
   };
-  let IsLoaded = false;
-  useEffect(() => {
-    if (IsLoaded) return;
-    IsLoaded = true;
-    getLocation()
-  }, []);
+
+  const clearPopups = () => {
+    try {
+      // Obtén todos los popups presentes en el mapa
+      const popups = document.querySelectorAll('.leaflet-popup-content');
+  
+      // Recorre cada popup y elimínalo
+      popups.forEach(popup => {
+        popup.remove();
+      });
+    } catch (error) {
+      console.error('Error al limpiar popups:', error.message);
+    }
+  };
+
+  const clearMarkers = () => {
+    try {
+      const markerIcons = document.querySelectorAll(".leaflet-marker-icon");
+      const markerShadows = document.querySelectorAll(".leaflet-marker-shadow");
+  
+      markerIcons.forEach((markerIcon) => {
+        // Elimina cada marcador individualmente
+        markerIcon.remove();
+      });
+  
+      markerShadows.forEach((markerShadow) => {
+        // Elimina cada sombra de marcador individualmente
+        markerShadow.remove();
+      });
+    } catch (error) {
+      console.error("Error clearing markers:", error);
+    }
+  };
   //-------------------------------------------------------------------------------------------
 
-  //Obtener geolocalizacion-----------------------------------------
-  const getLocation = () => {
-    obtenerUbicacion()
-      .then(coordenadas => {
-        let map = L.map("map").setView(
-          [coordenadas.latitud, coordenadas.longitud],
-          15,
-          [osm, parks, hospitales, facultades, museos]
-        );
-        //Una vez que encuentra la direccion la guarda.
-        agregarPuntos([coordenadas.latitud, coordenadas.longitud])
-        setMarcadores(L.layerGroup());
-        setMapa(map);
-      })
-      .catch(error => {
-        let map = L.map("map").setView(
-          [-26.83261080003296, -65.19707679748537],
-          15,
-          [osm, parks, hospitales, facultades, museos]
-        );
-        setMarcadores(L.layerGroup());
-        setMapa(map);
-      });
-  }
-  //-----------------------------------------------------------------
-
-
+  // useEffects--------------------------------------------------------------------------------
   useEffect(() => {
-    
-    if (mapa == undefined) return;
-    for (let layer in mapa._layers) {
-      if (mapa._layers[layer] instanceof L.Marker) {
-        mapa.removeLayer(mapa._layers[layer]);
+    const obtenerGeolocalizacion = async () => {
+      try {
+        const coordenadas = await obtenerUbicacion();
+        if (!mapa) {
+          const newMapa = L.map("map").setView(
+            [coordenadas.latitud, coordenadas.longitud],
+            15
+          );
+
+          //Colocar un marcador por defecto
+          L.marker([coordenadas.latitud, coordenadas.longitud], { icon: defaultIcon }).addTo(newMapa);
+
+          //Buscar el nombre de la ubicacion
+          let name = await getNombreByCoordenadas(coordenadas.latitud,  coordenadas.longitud);
+          
+          //Agregar el punto como punto de referencia
+          agregarPuntos([coordenadas.latitud, coordenadas.longitud, name]);
+          //
+
+          setMapa(newMapa);
+          setMarcadores(L.layerGroup());
+          setItsLoaded(true);
+
+          // Load other initializations here if needed
+          loadHeaderAndFooter();
+          handleEventClick();
+          initBuscador();
+          
+          //
+        }
+      } catch (error) {
+        console.error("Error al obtener la geolocalización:", error);
       }
-    }
+    };
+    obtenerGeolocalizacion();
+  }, [mapa, itsLoaded]);
 
-    puntosMapa.forEach((punto) => {
-      let lat = punto[0];
-      let lon = punto[1];
-      L.marker([lat, lon], { icon: defaultIcon }).addTo(mapa);
-    });
-  }, [puntosMapa, mapa]);
 
+  // Evento de captura de clic
   useEffect(() => {
-    if (mapa == undefined) return;
+    handleEventClick();
+  }, [mapa]);
+  
+  // Load values like title and footer of the map
+  useEffect(() => {
+    loadHeaderAndFooter();
+  }, [mapa]);
 
+  // Buscador de direcciones
+  useEffect(() => {
+    initBuscador();
+  }, [mapa]);
+  
+  useEffect(() => {
+    load();
     loadLayerTypes();
 
-    var mapURL = L.Browser.retina
-      ? `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}.png?apiKey=${myAPIKey}`
-      : `https://maps.geoapify.com/v1/tile/{mapStyle}/{z}/{x}/{y}@2x.png?apiKey=${myAPIKey}`;
+  //Eventos del click
+  agregarEventoClicDerecho(parks);
+  agregarEventoClicDerecho(facultades);
+  agregarEventoClicDerecho(hospitales);
+  agregarEventoClicDerecho(museos);
+  }, [osm, osmHOT, openTopoMap]);
 
-    L.tileLayer(mapURL, {
-      attribution: "ZuritaOrtiz_ValdezPeralta",
-      apiKey: myAPIKey,
-      mapStyle: "osm-bright-smooth",
-    }).addTo(mapa);
-
-    mapa.on("click", async function (e) {
-      var latLng = e.latlng;
-      var lat = latLng.lat;
-      var lng = latLng.lng;
-
-      let name = await getNombreByCoordenadas(lat, lng);
-
-      agregarPuntos([lat, lng, name]);
-    });
-
-
-    //Buscador de direcciones-----------------------------------------------
-    const addressSearchControl = L.control.addressSearch(myAPIKey, {
-      resultCallback: (address) => {
-        if (!address) {
-          return;
-        }
-
-        agregarPuntos([
-          address.lat,
-          address.lon,
-          address.address_line1 + " " + address.address_line2,
-        ]);
-
-        if (
-          address.bbox &&
-          address.bbox.lat1 !== address.bbox.lat2 &&
-          address.bbox.lon1 !== address.bbox.lon2
-        ) {
-          mapa.fitBounds(
-            [
-              [address.bbox.lat1, address.bbox.lon1],
-              [address.bbox.lat2, address.bbox.lon2],
-            ],
-            { padding: [100, 100] }
-          );
-        } else {
-          mapa.setView([address.lat, address.lon], 15);
-        }
-      },
-    });
-    mapa.addControl(addressSearchControl);
-    //Captura de radio buttons
-    obtencionEventsRadioButton(mapa)
-    L.control.zoom({ position: "bottomright" }).addTo(mapa);
-  }, [mapa]);
   //-------------------------------------------------------------------------------------
 
+  //Evento de captura de clic
+  function handleEventClick() {
+    if (mapa !== undefined) {
+      mapa.on("click", async function (e) {
+        var latLng = e.latlng;
+        var lat = latLng.lat;
+        var lng = latLng.lng;
+  
+        let name = await getNombreByCoordenadas(lat, lng);
+  
+        // Agregar el punto a puntosMapa
+        const nuevoPunto = [lat, lng, name];
+        setPuntosMapa((prevPuntos) => [...prevPuntos, nuevoPunto]);
+  
+        // Crear y agregar el marcador con el ícono específico
+        L.marker([lat, lng], { icon: defaultIcon }).addTo(mapa);
+      });
+    }
+  }
+
+  //Cargar valores principales como titlo y pie del mapa
+  function loadHeaderAndFooter(){
+    if(mapa !== undefined){
+      L.tileLayer(mapURL, {
+        attribution: "ZuritaOrtiz_ValdezPeralta",
+        apiKey: myAPIKey,
+        mapStyle: "osm-bright-smooth",
+      }).addTo(mapa);
+    }
+  }
+
+
+  //Buscador de direcciones
+  function initBuscador() {
+    if(mapa!==undefined){
+      const addressSearchControl = L.control.addressSearch(myAPIKey, {
+        resultCallback: (address) => {
+          if (!address) {
+            return;
+          }
+          agregarPuntos([
+            address.lat,
+            address.lon,
+            address.address_line1 + " " + address.address_line2,
+          ]);
+          if (
+            address.bbox &&
+            address.bbox.lat1 !== address.bbox.lat2 &&
+            address.bbox.lon1 !== address.bbox.lon2
+          ) {
+            mapa.fitBounds(
+              [
+                [address.bbox.lat1, address.bbox.lon1],
+                [address.bbox.lat2, address.bbox.lon2],
+              ],
+              { padding: [100, 100] }
+            );
+          } else {
+            mapa.setView([address.lat, address.lon], 15);
+          }
+        },
+      });
+      mapa.addControl(addressSearchControl);
+      obtencionEventsRadioButton(mapa);
+    }
+  }
 
   //Control para poder ver los tipos de mapas y puntos de referencia--------------------------------------------------
-  function obtencionEventsRadioButton(mapa) {
+  function  obtencionEventsRadioButton() {
     try {
-      //Agregar el boton de diversos mapas y capas
-      var controlCapas = L.control.layers(baseMaps, overlayMaps);
-      controlCapas.addTo(mapa);
-      controlCapas.getContainer().classList.add('custom-control-position');
-
-      // Obtener todos los checkboxes dentro del contenedor del control de capas
-      var checkboxes = controlCapas.getContainer().querySelectorAll('.leaflet-control-layers-selector');
-
-      checkboxes.forEach(function (checkbox) {
-        checkbox.addEventListener('change', function (event) {
-          var nombreCapa = checkbox.parentElement.querySelector('span').innerText.trim().replace(':', '');
-          switch (nombreCapa) {
-            case 'Hospitales':
-              // Ruta a tu imagen personalizada
-
-              break;
-            case 'Plazas y Parques':
-              //Agregar logica para cambiar el color del posicionador
-              break;
-            case 'Facultades':
-              //Agregar logica para cambiar el color del posicionador
-              break;
-            case 'Museos':
-              //Agregar logica para cambiar el color del posicionador
-              break;
-          }
-        });
-      });
+        //Agregar el boton de diversos mapas y capas
+        var controlCapas = L.control.layers(baseMaps, overlayMaps);
+        controlCapas.addTo(mapa);
+        controlCapas.getContainer().classList.add('custom-control-position');
     } catch (error) {
       console.log(error.message)
     }
@@ -633,7 +654,7 @@ const Mapa = () => {
               <div className="col text-sm text-center text-red-500">
                 <h1>
                   Bienvenid@{" "}
-                  {user.firstName + " Inicio de sesion: " + user.date}
+                  {/* {user.firstName + " Inicio de sesion: " + user.date} */}
                 </h1>
               </div>
             </div>
