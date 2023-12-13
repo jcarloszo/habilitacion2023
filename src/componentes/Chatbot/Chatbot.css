@@ -1,0 +1,33 @@
+.chatBot-container {
+    position: fixed;
+    bottom: -500px;
+    right: 30px;
+    width: 450px;
+    height: 500px;
+    transition-duration: 0.3s;
+}
+
+.chatBot-container.active {
+    bottom: 0px;
+}
+
+.chatBot-iframe {
+    height: 100%;
+}
+
+.btn-toggle-chatbot {
+    margin-right: 5px;
+    box-sizing: border-box;
+    cursor: pointer;
+    background: rgb(11, 85, 106);
+    display: inline-block;
+    text-align: center;
+    padding: 10px 15px;
+    border-radius: 4px 4px 0px 0px;
+    font-weight: bold;
+    color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.304);
+    position: absolute;
+    right: 5px;
+    top: -45px;
+}

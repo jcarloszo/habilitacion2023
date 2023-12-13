@@ -11,6 +11,7 @@ import "animate.css";
 import "animate.css";
 import { SesionProvider } from "./models/Sesion/Sesion.tsx";
 import ForgotPassword from "./componentes/ForgotPassword/ForgotPassword.tsx";
+import Chatbot from "./componentes/Chatbot/Chatbot.jsx";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           </SesionProvider>
         </Router>
       </div>
+      <Chatbot></Chatbot>
     </FirebaseContext.Provider>
   );
 }
